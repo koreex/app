@@ -1,63 +1,63 @@
-import * as THREE from 'three';
-import { IDTech } from './idTech.js';
+import * as THREE from 'three'
+import { IDTech } from './idTech.js'
 
+const textureLoader = new THREE.TextureLoader()
 
-const textureLoader = new THREE.TextureLoader();
-
-
-const IdtechBasic = new IDTech(512, 64);
-IdtechBasic.loadAll('textures/terrain/terrain ');
-const IdtechNormal = new IDTech(512, 64);
-IdtechNormal.loadAll('textures/terrainnormal/terrain normal ');
+const IdtechBasic = new IDTech(512, 64)
+IdtechBasic.loadAll('textures/terrain/terrain ')
+const IdtechNormal = new IDTech(512, 64)
+IdtechNormal.loadAll('textures/terrainnormal/terrain normal ')
 
 /**
  * GradientMap
  */
 const gradientMaps = (function () {
+  const threeTone = textureLoader.load('./textures/threeTone.jpg')
+  threeTone.minFilter = THREE.NearestFilter
+  threeTone.magFilter = THREE.NearestFilter
 
-    const threeTone = textureLoader.load('./textures/threeTone.jpg');
-    threeTone.minFilter = THREE.NearestFilter;
-    threeTone.magFilter = THREE.NearestFilter;
+  const fiveTone = textureLoader.load('./textures/fiveTone.jpg')
+  fiveTone.minFilter = THREE.NearestFilter
+  fiveTone.magFilter = THREE.NearestFilter
 
-    const fiveTone = textureLoader.load('./textures/fiveTone.jpg');
-    fiveTone.minFilter = THREE.NearestFilter;
-    fiveTone.magFilter = THREE.NearestFilter;
+  return {
+    none: null,
+    threeTone: threeTone,
+    fiveTone: fiveTone,
+  }
+})()
 
-    return {
-        none: null,
-        threeTone: threeTone,
-        fiveTone: fiveTone
-    };
+const noiseTexture = textureLoader.load(
+  `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/noise.png`
+)
+noiseTexture.wrapS = THREE.RepeatWrapping
+noiseTexture.wrapT = THREE.RepeatWrapping
 
-})();
-
-const noiseTexture = textureLoader.load(`${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}/textures/noise.png`)
-noiseTexture.wrapS = THREE.RepeatWrapping;
-noiseTexture.wrapT = THREE.RepeatWrapping;
-
-export const terrainMaterial = new THREE.MeshToonMaterial({ color: 0xaaccff, gradientMap: gradientMaps.threeTone });;
+export const terrainMaterial = new THREE.MeshToonMaterial({
+  color: 0xaaccff,
+  gradientMap: gradientMaps.threeTone,
+})
 
 terrainMaterial.onBeforeCompile = (shader, renderer) => {
-    shader.uniforms = shader.uniforms || {};
-    terrainMaterial.uniforms = shader.uniforms;
-    console.log('onBeforeCompile');
-    shader.vertexShader = vertex;
-    shader.fragmentShader = fragment;
+  shader.uniforms = shader.uniforms || {}
+  terrainMaterial.uniforms = shader.uniforms
+  console.log('onBeforeCompile')
+  shader.vertexShader = vertex
+  shader.fragmentShader = fragment
 
+  shader.defines = shader.defines || {}
+  //USE_TERRAIN  open terrain render
+  shader.defines['USE_TERRAIN'] = ''
 
-    shader.defines = shader.defines || {};
-    //USE_TERRAIN  open terrain render
-    shader.defines['USE_TERRAIN'] = '';
-
-    //terrain map
-    shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture };
-    //terrain normal map
-    shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture };
-    //noise map use to random sampler
-    shader.uniforms.noiseTexture = { value: noiseTexture };
+  //terrain map
+  shader.uniforms.terrainArrayTexture = { value: IdtechBasic.texture }
+  //terrain normal map
+  shader.uniforms.terrainNormalArrayTexture = { value: IdtechNormal.texture }
+  //noise map use to random sampler
+  shader.uniforms.noiseTexture = { value: noiseTexture }
 }
 
-export const vertex = /* glsl */`
+export const vertex = /* glsl */ `
 #define TOON
 
 varying vec3 vViewPosition;
@@ -132,9 +132,9 @@ void main() {
 	#include <fog_vertex>
 
 }
-`;
+`
 
-export const fragment = /* glsl */`
+export const fragment = /* glsl */ `
 #define TOON
 
 uniform vec3 diffuse;
@@ -347,5 +347,4 @@ void main() {
 	#include <dithering_fragment>
 
 }
-`;
-
+`
